@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Turni Sporting 55</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2196F3;
+        }
+        .logo-section h1 {
+            color: #2196F3;
+            font-size: 28px;
+            margin: 0;
+            font-weight: bold;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .btn-secondary {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+        }
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            min-width: 1200px;
+        }
+        th {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        td {
+            border: 1px solid #e0e0e0;
+            padding: 8px 6px;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .employee-name {
+            background: #f8f9fa;
+            font-weight: bold;
+            text-align: left;
+            padding-left: 12px;
+            width: 120px;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+        }
+        .day-header {
+            background: #e3f2fd;
+            font-weight: bold;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            min-width: 80px;
+        }
+        .shift-cell {
+            cursor: pointer;
+            min-width: 70px;
+        }
+        .shift-cell:hover {
+            background: #f0f8ff;
+        }
+        .shift-cell input {
+            border: none;
+            background: transparent;
+            text-align: center;
+            width: 100%;
+            padding: 4px;
+            font-size: 10px;
+        }
+        .total-hours {
+            background: #fff3e0;
+            font-weight: bold;
+            color: #f57c00;
+        }
+        .status-off { background: #ffebee; color: #d32f2f; }
+        .status-hol { background: #fff3e0; color: #f57c00; }
+        .status-work { background: #e8f5e8; color: #2e7d32; }
+        .notes-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .add-employee {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-section">
+                <h1>🏐 SPORTING 55 - PLANNING TURNI</h1>
+            </div>
+            <div class="controls">
+                <div class="form-group">
+                    <label>Settimana dal:</label>
+                    <input type="date" id="startDate" onchange="updateDates()">
+                </div>
+                <div class="form-group">
+                    <label>Location:</label>
+                    <select id="location">
+                        <option>Campo Centrale</option>
+                        <option>Campo Beach</option>
+                        <option>Reception</option>
+                        <option>Bar/Ristorante</option>
+                        <option>Tutti</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="downloadExcel()">📥 Scarica Excel</button>
+                <button class="btn btn-secondary" onclick="addEmployee()">👤 Aggiungi Staff</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalStaff">0</div>
+                <div>Staff Totale</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalHours">0</div>
+                <div>Ore Programmate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgHours">0</div>
+                <div>Ore Medie/Persona</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="rotaTable">
+                <thead>
+                    <tr>
+                        <th class="employee-name">Staff Member</th>
+                        <th class="day-header">Lunedì<br><span id="mon-date"></span></th>
+                        <th class="day-header">Martedì<br><span id="tue-date"></span></th>
+                        <th class="day-header">Mercoledì<br><span id="wed-date"></span></th>
+                        <th class="day-header">Giovedì<br><span id="thu-date"></span></th>
+                        <th class="day-header">Venerdì<br><span id="fri-date"></span></th>
+                        <th class="day-header">Sabato<br><span id="sat-date"></span></th>
+                        <th class="day-header">Domenica<br><span id="sun-date"></span></th>
+                        <th class="total-hours">Tot. Ore</th>
+                        <th style="background:#f5f5f5;">Note</th>
+                    </tr>
+                </thead>
+                <tbody id="rotaBody">
+                </tbody>
+            </table>
+        </div>
+
+        <button class="add-employee" onclick="addEmployee()">+ Aggiungi Nuovo Staff</button>
+
+        <div class="notes-section">
+            <h3>📝 Note Settimanali</h3>
+            <textarea id="weeklyNotes" placeholder="Note generali per la settimana..." style="width:100%; height:80px; padding:10px; border:1px solid #ddd; border-radius:4px;"></textarea>
+        </div>
+    </div>
+
+    <script>
+        let staffMembers = [
+            'Giacomo Carron',
+            'Marco Bianchi', 
+            'Sara Rossi',
+            'Luca Verdi',
+            'Anna Neri'
+        ];
+
+        let rotaData = {};
+
+        function initializeData() {
+            staffMembers.forEach(name => {
+                rotaData[name] = {
+                    monday: '', tuesday: '', wednesday: '', thursday: '',
+                    friday: '', saturday: '', sunday: '', notes: '', totalHours: 0
+                };
+            });
+        }
+
+        function updateDates() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            if (!startDate || isNaN(startDate)) return;
+
+            const days = ['mon-date', 'tue-date', 'wed-date', 'thu-date', 'fri-date', 'sat-date', 'sun-date'];
+            
+            for (let i = 0; i < 7; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                document.getElementById(days[i]).textContent = currentDate.toLocaleDateString('it-IT', {day: '2-digit', month: '2-digit'});
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('rotaBody');
+            tbody.innerHTML = '';
+
+            staffMembers.forEach(name => {
+                const row = document.createElement('tr');
+                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                
+                row.innerHTML = `
+                    <td class="employee-name">${name}</td>
+                    ${days.map(day => `
+                        <td class="shift-cell">
+                            <input type="text" 
+                                   placeholder="OFF / 09:00-17:00 / HOL"
+                                   value="${rotaData[name][day]}"
+                                   onchange="updateShift('${name}', '${day}', this.value)"
+                                   onblur="calculateHours('${name}')">
+                        </td>
+                    `).join('')}
+                    <td class="total-hours" id="total-${name.replace(/\s+/g, '')}">${rotaData[name].totalHours}</td>
+                    <td><input type="text" placeholder="Note..." value="${rotaData[name].notes}" onchange="rotaData['${name}'].notes = this.value"></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            updateStats();
+        }
+
+        function updateShift(name, day, value) {
+            rotaData[name][day] = value;
+            const cell = event.target.parentElement;
+            
+            // Colora la cella in base al contenuto
+            if (value.toLowerCase() === 'off') {
+                cell.className = 'shift-cell status-off';
+            } else if (value.toLowerCase() === 'hol') {
+                cell.className = 'shift-cell status-hol';
+            } else if (value.includes('-') || value.includes(':')) {
+                cell.className = 'shift-cell status-work';
+            } else {
+                cell.className = 'shift-cell';
+            }
+        }
+
+        function calculateHours(name) {
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            let totalHours = 0;
+
+            days.forEach(day => {
+                const shift = rotaData[name][day];
+                if (shift && shift.includes('-')) {
+                    const [start, end] = shift.split('-');
+                    if (start.includes(':') && end.includes(':')) {
+                        const startTime = start.split(':');
+                        const endTime = end.split(':');
+                        const startMinutes = parseInt(startTime[0]) * 60 + parseInt(startTime[1]);
+                        const endMinutes = parseInt(endTime[0]) * 60 + parseInt(endTime[1]);
+                        totalHours += (endMinutes - startMinutes) / 60;
+                    }
+                }
+            });
+
+            rotaData[name].totalHours = totalHours.toFixed(1);
+            document.getElementById(`total-${name.replace(/\s+/g, '')}`).textContent = totalHours.toFixed(1);
+            updateStats();
+        }
+
+        function updateStats() {
+            const totalStaff = staffMembers.length;
+            const totalHours = Object.values(rotaData).reduce((sum, person) => sum + parseFloat(person.totalHours || 0), 0);
+            const avgHours = totalStaff > 0 ? (totalHours / totalStaff).toFixed(1) : 0;
+
+            document.getElementById('totalStaff').textContent = totalStaff;
+            document.getElementById('totalHours').textContent = totalHours.toFixed(1);
+            document.getElementById('avgHours').textContent = avgHours;
+        }
+
+        function addEmployee() {
+            const name = prompt('Nome del nuovo staff member:');
+            if (name && !staffMembers.includes(name)) {
+                staffMembers.push(name);
+                rotaData[name] = {
+                    monday: '', tuesday: '', wednesday: '', thursday: '',
+                    friday: '', saturday: '', sunday: '', notes: '', totalHours: 0
+                };
+                renderTable();
+            }
+        }
+
+        function downloadExcel() {
+            const wb = XLSX.utils.book_new();
+            
+            // Prepara i dati per Excel
+            const excelData = staffMembers.map(name => ({
+                'Staff Member': name,
+                'Lunedì': rotaData[name].monday,
+                'Martedì': rotaData[name].tuesday,
+                'Mercoledì': rotaData[name].wednesday,
+                'Giovedì': rotaData[name].thursday,
+                'Venerdì': rotaData[name].friday,
+                'Sabato': rotaData[name].saturday,
+                'Domenica': rotaData[name].sunday,
+                'Totale Ore': rotaData[name].totalHours,
+                'Note': rotaData[name].notes
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            
+            // Stile celle
+            ws['!cols'] = [
+                {width: 20}, {width: 15}, {width: 15}, {width: 15}, {width: 15}, 
+                {width: 15}, {width: 15}, {width: 15}, {width: 12}, {width: 25}
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Planning Sporting 55");
+            
+            const startDate = document.getElementById('startDate').value;
+            const fileName = `Sporting55_Planning_${startDate || 'settimana'}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // Inizializza
+        initializeData();
+        renderTable();
+        
+        // Imposta data corrente
+        const today = new Date();
+        const monday = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+        document.getElementById('startDate').value = monday.toISOString().split('T')[0];
+        updateDates();
+    </script>
+</body>
+</html>
